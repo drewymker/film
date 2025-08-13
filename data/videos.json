@@ -1,0 +1,31 @@
+{
+  "videos": [
+    {
+      "id": "sample-1",
+      "title": "Sample Video 1",
+      "description": "This is a sample video to demonstrate the catalog functionality. Replace with your own videos.",
+      "thumbnail": "/placeholder.svg?height=200&width=300",
+      "videoUrl": "https://www.youtube.com/embed/dQw4w9WgXcQ",
+      "driveUrl": "https://drive.google.com/file/d/sample/view",
+      "dateAdded": "2024-01-15T10:30:00Z"
+    },
+    {
+      "id": "sample-2",
+      "title": "Sample Video 2",
+      "description": "Another sample video with a longer description to show how the card layout handles different content lengths. This demonstrates the text truncation feature.",
+      "thumbnail": "/placeholder.svg?height=200&width=300",
+      "videoUrl": "https://www.youtube.com/embed/dQw4w9WgXcQ",
+      "driveUrl": "https://drive.google.com/file/d/sample2/view",
+      "dateAdded": "2024-01-14T15:45:00Z"
+    },
+    {
+      "id": "sample-3",
+      "title": "Sample Video 3",
+      "description": "A third sample video to populate the grid and show the responsive layout in action.",
+      "thumbnail": "/placeholder.svg?height=200&width=300",
+      "videoUrl": "https://www.youtube.com/embed/dQw4w9WgXcQ",
+      "driveUrl": "https://drive.google.com/file/d/sample3/view",
+      "dateAdded": "2024-01-13T09:20:00Z"
+    }
+  ]
+}
