@@ -191,20 +191,57 @@ class VideoCatalog {
 
     searchSection.appendChild(advancedControls)
 
-    // Add event listeners for advanced controls
-    document.getElementById("sortSelect")?.addEventListener("change", (e) => {
-      this.currentSort = e.target.value
-      this.applySortAndFilter()
-    })
+    const sortSelect = document.getElementById("sortSelect")
+    const folderSelect = document.getElementById("folderSelect")
+    const clearFilters = document.getElementById("clearFilters")
 
-    document.getElementById("folderSelect")?.addEventListener("change", (e) => {
-      this.currentFolder = e.target.value
-      this.applySortAndFilter()
-    })
+    if (sortSelect) {
+      // Use both change and input events for better mobile support
+      sortSelect.addEventListener("change", (e) => {
+        this.currentSort = e.target.value
+        this.applySortAndFilter()
+      })
+      sortSelect.addEventListener("input", (e) => {
+        this.currentSort = e.target.value
+        this.applySortAndFilter()
+      })
+      // Add touch events for mobile
+      sortSelect.addEventListener("touchend", (e) => {
+        setTimeout(() => {
+          this.currentSort = e.target.value
+          this.applySortAndFilter()
+        }, 100)
+      })
+    }
 
-    document.getElementById("clearFilters")?.addEventListener("click", () => {
-      this.clearAllFilters()
-    })
+    if (folderSelect) {
+      // Use both change and input events for better mobile support
+      folderSelect.addEventListener("change", (e) => {
+        this.currentFolder = e.target.value
+        this.applySortAndFilter()
+      })
+      folderSelect.addEventListener("input", (e) => {
+        this.currentFolder = e.target.value
+        this.applySortAndFilter()
+      })
+      // Add touch events for mobile
+      folderSelect.addEventListener("touchend", (e) => {
+        setTimeout(() => {
+          this.currentFolder = e.target.value
+          this.applySortAndFilter()
+        }, 100)
+      })
+    }
+
+    if (clearFilters) {
+      clearFilters.addEventListener("click", () => {
+        this.clearAllFilters()
+      })
+      clearFilters.addEventListener("touchend", (e) => {
+        e.preventDefault()
+        this.clearAllFilters()
+      })
+    }
   }
 
   generateSearchSuggestions() {
@@ -620,16 +657,25 @@ class VideoCatalog {
             const img = entry.target
 
             // Add loading animation
-            img.style.opacity = "0"
-            img.style.transition = "opacity 0.3s ease-in-out"
+            img.style.opacity = "0.5"
+            img.style.transition = "opacity 0.5s ease-in-out"
 
-            // Load image
+            // Create a new image to test loading
             const tempImg = new Image()
+
             tempImg.onload = () => {
               img.src = tempImg.src
               img.style.opacity = "1"
+              img.style.filter = "none"
               img.classList.add("loaded")
             }
+
+            tempImg.onerror = () => {
+              // If the original thumbnail fails, trigger our error handler
+              this.handleThumbnailError(img)
+            }
+
+            // Start loading
             tempImg.src = img.dataset.src || img.src
 
             imageObserver.unobserve(img)
@@ -637,7 +683,7 @@ class VideoCatalog {
         })
       },
       {
-        rootMargin: "100px",
+        rootMargin: "50px", // Reduced for faster loading
         threshold: 0.1,
       },
     )
@@ -654,8 +700,52 @@ class VideoCatalog {
   }
 
   handleThumbnailError(img) {
+    // Try different fallback strategies
+    if (!img.dataset.fallbackAttempted) {
+      img.dataset.fallbackAttempted = "1"
+
+      // First fallback: try to extract thumbnail from Google Drive URL
+      const videoCard = img.closest(".video-card")
+      if (videoCard) {
+        const videoId = videoCard.dataset.videoId
+        const video = this.videos.find((v) => v.id === videoId)
+
+        if (video && video.driveUrl && video.driveUrl.includes("drive.google.com")) {
+          // Extract file ID and try different thumbnail format
+          const fileIdMatch = video.driveUrl.match(/\/d\/([a-zA-Z0-9-_]+)/)
+          if (fileIdMatch) {
+            const fileId = fileIdMatch[1]
+            img.src = `https://drive.google.com/thumbnail?id=${fileId}&sz=w400-h300`
+            return
+          }
+        }
+      }
+    } else if (img.dataset.fallbackAttempted === "1") {
+      img.dataset.fallbackAttempted = "2"
+      // Second fallback: try a different Google Drive thumbnail format
+      const videoCard = img.closest(".video-card")
+      if (videoCard) {
+        const videoId = videoCard.dataset.videoId
+        const video = this.videos.find((v) => v.id === videoId)
+
+        if (video && video.driveUrl && video.driveUrl.includes("drive.google.com")) {
+          const fileIdMatch = video.driveUrl.match(/\/d\/([a-zA-Z0-9-_]+)/)
+          if (fileIdMatch) {
+            const fileId = fileIdMatch[1]
+            img.src = `https://lh3.googleusercontent.com/d/${fileId}=w400-h300`
+            return
+          }
+        }
+      }
+    }
+
+    // Final fallback: use placeholder
     img.src = "assets/images/placeholder.png"
     img.onerror = null // Prevent infinite loop
+
+    // Add a subtle loading indicator
+    img.style.opacity = "0.7"
+    img.style.filter = "grayscale(0.3)"
   }
 
   showNotification(message, type = "success") {
