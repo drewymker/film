@@ -247,29 +247,59 @@ class VideoUploader {
       folder: data.folder,
     }
 
+    const jsonString = JSON.stringify(video, null, 2)
+
     // Create modal with instructions
     const modal = document.createElement("div")
     modal.className = "upload-modal"
     modal.innerHTML = `
       <div class="modal-content">
         <h3>Video Ready to Add!</h3>
-        <p>Since this is a static site, please copy the following JSON and add it to your <code>data/videos.json</code> file:</p>
+        <p>Copy the JSON below and add it to your <code>data/videos.json</code> file:</p>
         <div class="json-code">
-          <pre><code>${JSON.stringify(video, null, 2)}</code></pre>
+          <pre><code>${jsonString}</code></pre>
         </div>
         <div class="modal-actions">
-          <button class="copy-btn" onclick="navigator.clipboard.writeText('${JSON.stringify(video, null, 2).replace(/'/g, "\\'")}')">
-            Copy JSON
+          <button class="copy-btn" id="copyJsonBtn">
+            📋 Copy JSON
           </button>
           <button class="close-btn" onclick="this.parentElement.parentElement.parentElement.remove()">
             Close
           </button>
         </div>
-        <p class="modal-note">Add this object to the "videos" array in your JSON file, then refresh the page to see your video.</p>
+        <p class="modal-note">Add this object to the "videos" array in your JSON file. The page will automatically refresh to show new videos.</p>
       </div>
     `
 
     document.body.appendChild(modal)
+
+    const copyBtn = modal.querySelector("#copyJsonBtn")
+    copyBtn.addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText(jsonString)
+        copyBtn.innerHTML = "✅ Copied!"
+        copyBtn.style.backgroundColor = "#10b981"
+        setTimeout(() => {
+          copyBtn.innerHTML = "📋 Copy JSON"
+          copyBtn.style.backgroundColor = ""
+        }, 2000)
+      } catch (err) {
+        // Fallback for older browsers
+        const textArea = document.createElement("textarea")
+        textArea.value = jsonString
+        document.body.appendChild(textArea)
+        textArea.select()
+        document.execCommand("copy")
+        document.body.removeChild(textArea)
+
+        copyBtn.innerHTML = "✅ Copied!"
+        copyBtn.style.backgroundColor = "#10b981"
+        setTimeout(() => {
+          copyBtn.innerHTML = "📋 Copy JSON"
+          copyBtn.style.backgroundColor = ""
+        }, 2000)
+      }
+    })
 
     // Add click to close
     modal.addEventListener("click", (e) => {
@@ -374,7 +404,7 @@ class VideoUploader {
   }
 
   getDefaultThumbnail() {
-    return "/placeholder.svg?height=200&width=300&text=Video"
+    return "assets/images/placeholder.png"
   }
 
   // URL validation methods

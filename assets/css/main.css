@@ -151,7 +151,6 @@ body {
   font-size: 0.875rem;
   cursor: pointer;
   transition: var(--transition);
-  min-width: 120px; /* Ensure minimum width on desktop */
 }
 
 .search-select:focus {
@@ -334,6 +333,7 @@ body {
   border-radius: var(--radius);
   overflow: hidden;
   box-shadow: var(--shadow-md);
+  position: relative;
 }
 
 .video-iframe,
@@ -342,15 +342,7 @@ body {
   height: 450px;
   border: none;
   border-radius: var(--radius);
-  object-fit: contain; /* Maintain aspect ratio without black bars */
-}
-
-.video-player iframe,
-.video-player video {
-  width: 100%;
-  height: 450px;
-  border: none;
-  object-fit: contain; /* Maintain aspect ratio without black bars */
+  object-fit: cover;
 }
 
 .video-error {
@@ -380,6 +372,13 @@ body {
   font-size: 1rem;
   margin-bottom: 1.5rem;
   max-width: 400px;
+}
+
+.video-player iframe,
+.video-player video {
+  width: 100%;
+  height: 450px;
+  border: none;
 }
 
 .video-info {
@@ -887,14 +886,21 @@ body {
     gap: 1rem;
   }
 
+  .video-player {
+    height: auto;
+  }
+
   .video-iframe,
-  .video-element,
-  .video-player iframe,
-  .video-player video {
-    height: 56.25vw; /* 16:9 aspect ratio responsive to screen width */
-    max-height: 300px; /* Prevent too tall on very wide phones */
-    min-height: 200px; /* Ensure minimum height */
+  .video-element {
+    height: auto;
+    aspect-ratio: 16 / 9;
+    min-height: 200px;
     object-fit: contain;
+  }
+
+  .video-player iframe {
+    aspect-ratio: 16 / 9;
+    height: auto;
   }
 
   .video-title {
@@ -902,10 +908,6 @@ body {
   }
 
   .video-info {
-    padding: 1.5rem;
-  }
-
-  .notes-section {
     padding: 1.5rem;
   }
 
@@ -930,8 +932,7 @@ body {
     gap: 0.5rem;
   }
 
-  .upload-form-container,
-  .notes-section {
+  .upload-form-container {
     padding: 1.5rem;
     margin: 0 0.75rem;
   }
@@ -944,7 +945,6 @@ body {
 
   .search-select {
     width: 100%;
-    min-width: auto; /* Remove min-width constraint on mobile */
   }
 
   .search-suggestions {

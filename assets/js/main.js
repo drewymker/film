@@ -20,32 +20,78 @@ class VideoCatalog {
     this.showLoading(false)
     this.setupLazyLoading()
     this.setupAnimationSystem()
+
+    setInterval(() => {
+      this.refreshVideos()
+    }, 30000)
   }
 
   async loadVideos() {
     try {
-      // Try to load from localStorage first (for user-added videos)
-      const localVideos = localStorage.getItem("userVideos")
-      const userVideos = localVideos ? JSON.parse(localVideos) : []
-
-      // Load default videos from JSON
-      const response = await fetch("data/videos.json")
+      const response = await fetch("data/videos.json?t=" + Date.now()) // Cache busting
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)
       }
       const data = await response.json()
 
-      // Combine default and user videos, sort by date (newest first)
-      this.videos = [...data.videos, ...userVideos].sort((a, b) => new Date(b.dateAdded) - new Date(a.dateAdded))
+      this.videos = data.videos.sort((a, b) => new Date(b.dateAdded) - new Date(a.dateAdded))
       this.filteredVideos = [...this.videos]
 
-      // Generate search suggestions
+      this.extractFolders()
+      this.updateFolderDropdown()
       this.generateSearchSuggestions()
     } catch (error) {
       console.error("Error loading videos:", error)
       this.videos = []
       this.filteredVideos = []
       this.showError("Failed to load videos. Please refresh the page.")
+    }
+  }
+
+  async refreshVideos() {
+    try {
+      const response = await fetch("data/videos.json?t=" + Date.now())
+      if (response.ok) {
+        const data = await response.json()
+        const newVideoCount = data.videos.length
+        const currentVideoCount = this.videos.length
+
+        if (newVideoCount !== currentVideoCount) {
+          this.videos = data.videos.sort((a, b) => new Date(b.dateAdded) - new Date(a.dateAdded))
+          this.extractFolders()
+          this.updateFolderDropdown()
+          this.applySortAndFilter()
+          this.showNotification(`${newVideoCount - currentVideoCount} new video(s) added!`, "success")
+        }
+      }
+    } catch (error) {
+      console.error("Error refreshing videos:", error)
+    }
+  }
+
+  extractFolders() {
+    const folderSet = new Set()
+    this.videos.forEach((video) => {
+      if (video.folder) {
+        folderSet.add(video.folder)
+      }
+    })
+    this.folders = Array.from(folderSet).sort()
+  }
+
+  updateFolderDropdown() {
+    const folderSelect = document.getElementById("folderSelect")
+    if (!folderSelect) return
+
+    const currentValue = folderSelect.value
+    folderSelect.innerHTML = `
+      <option value="all">All Videos</option>
+      ${this.folders.map((folder) => `<option value="${folder}">${folder}</option>`).join("")}
+    `
+
+    // Restore previous selection if it still exists
+    if (this.folders.includes(currentValue) || currentValue === "all") {
+      folderSelect.value = currentValue
     }
   }
 
@@ -113,7 +159,6 @@ class VideoCatalog {
   }
 
   setupAdvancedSearch() {
-    // Create search controls container
     const searchSection = document.querySelector(".search-section")
     if (!searchSection) return
 
@@ -595,18 +640,32 @@ class VideoCatalog {
   }
 
   handleThumbnailError(img) {
-    // Create a placeholder with video icon
-    img.style.display = "none"
-    const placeholder = document.createElement("div")
-    placeholder.className = "thumbnail-placeholder"
-    placeholder.innerHTML = `
-      <svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor">
-        <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
-        <line x1="8" y1="21" x2="16" y2="21"></line>
-        <line x1="12" y1="17" x2="12" y2="21"></line>
-      </svg>
-    `
-    img.parentNode.appendChild(placeholder)
+    img.src = "assets/images/placeholder.png"
+    img.onerror = null // Prevent infinite loop
+  }
+
+  showNotification(message, type = "success") {
+    const existingNotification = document.querySelector(".notification")
+    if (existingNotification) {
+      existingNotification.remove()
+    }
+
+    const notification = document.createElement("div")
+    notification.className = `notification notification-${type}`
+    notification.textContent = message
+
+    document.body.appendChild(notification)
+
+    setTimeout(() => {
+      notification.classList.add("show")
+    }, 100)
+
+    setTimeout(() => {
+      notification.classList.remove("show")
+      setTimeout(() => {
+        notification.remove()
+      }, 300)
+    }, 3000)
   }
 
   formatDate(dateString) {
