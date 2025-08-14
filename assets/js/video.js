@@ -1,9 +1,7 @@
-// Video player functionality
 class VideoPlayer {
   constructor() {
     this.currentVideo = null
     this.videoId = null
-    this.notes = ""
     this.init()
   }
 
@@ -16,7 +14,6 @@ class VideoPlayer {
 
     await this.loadVideo()
     this.setupEventListeners()
-    this.loadNotes()
   }
 
   getVideoIdFromUrl() {
@@ -26,11 +23,6 @@ class VideoPlayer {
 
   async loadVideo() {
     try {
-      // Load from localStorage first (user videos)
-      const localVideos = localStorage.getItem("userVideos")
-      const userVideos = localVideos ? JSON.parse(localVideos) : []
-
-      // Load default videos
       const response = await fetch("data/videos.json")
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)
@@ -38,8 +30,7 @@ class VideoPlayer {
       const data = await response.json()
 
       // Find the video
-      const allVideos = [...data.videos, ...userVideos]
-      this.currentVideo = allVideos.find((video) => video.id === this.videoId)
+      this.currentVideo = data.videos.find((video) => video.id === this.videoId)
 
       if (!this.currentVideo) {
         this.showError("Video not found")
@@ -67,6 +58,12 @@ class VideoPlayer {
 
     if (descriptionElement) {
       descriptionElement.textContent = this.currentVideo.description
+    }
+
+    const folderElement = document.getElementById("videoFolder")
+    if (folderElement && this.currentVideo.folder) {
+      folderElement.textContent = `Folder: ${this.currentVideo.folder}`
+      folderElement.style.display = "block"
     }
 
     // Render video player
@@ -161,40 +158,8 @@ class VideoPlayer {
   }
 
   setupEventListeners() {
-    // Save notes button
-    const saveNotesBtn = document.getElementById("saveNotesBtn")
-    if (saveNotesBtn) {
-      saveNotesBtn.addEventListener("click", () => {
-        this.saveNotes()
-      })
-    }
-
-    // Auto-save notes on input (debounced)
-    const notesTextarea = document.getElementById("notesTextarea")
-    if (notesTextarea) {
-      let debounceTimer
-      notesTextarea.addEventListener("input", (e) => {
-        this.notes = e.target.value
-        clearTimeout(debounceTimer)
-        debounceTimer = setTimeout(() => {
-          this.saveNotes(true) // Silent save
-        }, 2000)
-      })
-
-      // Save on blur
-      notesTextarea.addEventListener("blur", () => {
-        this.saveNotes(true)
-      })
-    }
-
     // Keyboard shortcuts
     document.addEventListener("keydown", (e) => {
-      // Ctrl/Cmd + S to save notes
-      if ((e.ctrlKey || e.metaKey) && e.key === "s") {
-        e.preventDefault()
-        this.saveNotes()
-      }
-
       // Escape to go back
       if (e.key === "Escape") {
         this.goBack()
@@ -205,76 +170,6 @@ class VideoPlayer {
     window.addEventListener("popstate", () => {
       this.goBack()
     })
-  }
-
-  loadNotes() {
-    const notesKey = `notes_${this.videoId}`
-    const savedNotes = localStorage.getItem(notesKey)
-
-    const notesTextarea = document.getElementById("notesTextarea")
-    if (notesTextarea) {
-      if (savedNotes) {
-        notesTextarea.value = savedNotes
-        this.notes = savedNotes
-      }
-
-      // Add placeholder with video title
-      notesTextarea.placeholder = `Add your personal notes about "${this.currentVideo.title}"...`
-    }
-  }
-
-  saveNotes(silent = false) {
-    const notesTextarea = document.getElementById("notesTextarea")
-    if (!notesTextarea) return
-
-    const notesKey = `notes_${this.videoId}`
-    const notesToSave = notesTextarea.value.trim()
-
-    try {
-      if (notesToSave) {
-        localStorage.setItem(notesKey, notesToSave)
-      } else {
-        localStorage.removeItem(notesKey)
-      }
-
-      if (!silent) {
-        this.showNotification("Notes saved successfully!")
-      }
-    } catch (error) {
-      console.error("Error saving notes:", error)
-      if (!silent) {
-        this.showNotification("Failed to save notes", "error")
-      }
-    }
-  }
-
-  showNotification(message, type = "success") {
-    // Remove existing notification
-    const existingNotification = document.querySelector(".notification")
-    if (existingNotification) {
-      existingNotification.remove()
-    }
-
-    // Create notification
-    const notification = document.createElement("div")
-    notification.className = `notification notification-${type}`
-    notification.textContent = message
-
-    // Add to page
-    document.body.appendChild(notification)
-
-    // Animate in
-    setTimeout(() => {
-      notification.classList.add("show")
-    }, 100)
-
-    // Remove after delay
-    setTimeout(() => {
-      notification.classList.remove("show")
-      setTimeout(() => {
-        notification.remove()
-      }, 300)
-    }, 3000)
   }
 
   goBack() {
@@ -314,18 +209,6 @@ class VideoPlayer {
       `
     }
   }
-}
-
-// Utility functions
-function formatTime(seconds) {
-  const hours = Math.floor(seconds / 3600)
-  const minutes = Math.floor((seconds % 3600) / 60)
-  const secs = Math.floor(seconds % 60)
-
-  if (hours > 0) {
-    return `${hours}:${minutes.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`
-  }
-  return `${minutes}:${secs.toString().padStart(2, "0")}`
 }
 
 // Initialize video player when DOM is loaded

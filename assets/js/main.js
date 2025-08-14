@@ -5,9 +5,9 @@ class VideoCatalog {
     this.filteredVideos = []
     this.isLoading = false
     this.currentSort = "newest"
-    this.currentFilter = "all"
+    this.currentFolder = "all"
     this.searchSuggestions = []
-    this.animationQueue = []
+    this.folders = []
     this.init()
   }
 
@@ -128,10 +128,9 @@ class VideoCatalog {
           <option value="title-desc">Title Z-A</option>
         </select>
         
-        <select id="filterSelect" class="search-select">
+        <select id="folderSelect" class="search-select">
           <option value="all">All Videos</option>
-          <option value="user">My Videos</option>
-          <option value="default">Sample Videos</option>
+          ${this.folders.map((folder) => `<option value="${folder}">${folder}</option>`).join("")}
         </select>
         
         <button id="clearFilters" class="clear-filters-btn" title="Clear all filters">
@@ -153,8 +152,8 @@ class VideoCatalog {
       this.applySortAndFilter()
     })
 
-    document.getElementById("filterSelect")?.addEventListener("change", (e) => {
-      this.currentFilter = e.target.value
+    document.getElementById("folderSelect")?.addEventListener("change", (e) => {
+      this.currentFolder = e.target.value
       this.applySortAndFilter()
     })
 
@@ -180,6 +179,10 @@ class VideoCatalog {
           suggestions.add(word.toLowerCase())
         }
       })
+
+      if (video.folder) {
+        suggestions.add(video.folder.toLowerCase())
+      }
     })
 
     this.searchSuggestions = Array.from(suggestions).slice(0, 10)
@@ -194,6 +197,7 @@ class VideoCatalog {
       this.filteredVideos = this.videos.filter((video) => {
         const titleMatch = video.title.toLowerCase().includes(term)
         const descriptionMatch = video.description.toLowerCase().includes(term)
+        const folderMatch = video.folder && video.folder.toLowerCase().includes(term)
         const exactMatch = video.title.toLowerCase() === term || video.description.toLowerCase() === term
 
         // Boost exact matches
@@ -201,13 +205,15 @@ class VideoCatalog {
           video._searchScore = 100
         } else if (titleMatch) {
           video._searchScore = 50
+        } else if (folderMatch) {
+          video._searchScore = 40
         } else if (descriptionMatch) {
           video._searchScore = 25
         } else {
           video._searchScore = 0
         }
 
-        return titleMatch || descriptionMatch
+        return titleMatch || descriptionMatch || folderMatch
       })
 
       // Sort by search relevance
@@ -221,11 +227,8 @@ class VideoCatalog {
   applySortAndFilter() {
     let videos = [...this.filteredVideos]
 
-    // Apply filter
-    if (this.currentFilter === "user") {
-      videos = videos.filter((video) => video.addedBy === "user")
-    } else if (this.currentFilter === "default") {
-      videos = videos.filter((video) => video.addedBy !== "user")
+    if (this.currentFolder !== "all") {
+      videos = videos.filter((video) => video.folder === this.currentFolder)
     }
 
     // Apply sort
@@ -303,14 +306,14 @@ class VideoCatalog {
   clearAllFilters() {
     const searchInput = document.getElementById("searchInput")
     const sortSelect = document.getElementById("sortSelect")
-    const filterSelect = document.getElementById("filterSelect")
+    const folderSelect = document.getElementById("folderSelect")
 
     if (searchInput) searchInput.value = ""
     if (sortSelect) sortSelect.value = "newest"
-    if (filterSelect) filterSelect.value = "all"
+    if (folderSelect) folderSelect.value = "all"
 
     this.currentSort = "newest"
-    this.currentFilter = "all"
+    this.currentFolder = "all"
     this.performSearch("")
   }
 
@@ -369,7 +372,7 @@ class VideoCatalog {
                 <polygon points="5,3 19,12 5,21"></polygon>
               </svg>
             </div>
-            ${video.addedBy === "user" ? '<div class="user-badge">My Video</div>' : ""}
+            ${video.folder ? `<div class="folder-badge">${video.folder}</div>` : ""}
           </div>
           <div class="video-card-content">
             <h3 class="video-card-title">${this.escapeHtml(video.title)}</h3>
@@ -588,8 +591,7 @@ class VideoCatalog {
   getVideoSource(video) {
     if (video.driveUrl?.includes("drive.google.com")) return "Google Drive"
     if (video.driveUrl?.includes("youtube.com") || video.driveUrl?.includes("youtu.be")) return "YouTube"
-    if (video.addedBy === "user") return "User Upload"
-    return "Sample"
+    return "Video"
   }
 
   handleThumbnailError(img) {

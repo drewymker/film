@@ -1,13 +1,80 @@
-// Upload page functionality
 class VideoUploader {
   constructor() {
     this.isSubmitting = false
+    this.folders = []
     this.init()
   }
 
-  init() {
+  async init() {
+    await this.loadExistingFolders()
     this.setupEventListeners()
     this.setupFormValidation()
+    this.setupFolderSelection()
+  }
+
+  async loadExistingFolders() {
+    try {
+      const response = await fetch("data/videos.json")
+      if (response.ok) {
+        const data = await response.json()
+        const folderSet = new Set()
+        data.videos.forEach((video) => {
+          if (video.folder) {
+            folderSet.add(video.folder)
+          }
+        })
+        this.folders = Array.from(folderSet).sort()
+      }
+    } catch (error) {
+      console.error("Error loading folders:", error)
+      this.folders = ["General", "Tutorials", "Entertainment"]
+    }
+  }
+
+  setupFolderSelection() {
+    const folderSection = document.querySelector(".folder-section")
+    if (!folderSection) return
+
+    const folderOptions = this.folders.map((folder) => `<option value="${folder}">${folder}</option>`).join("")
+
+    folderSection.innerHTML = `
+      <label for="folderSelect" class="form-label">
+        Folder
+        <span class="required">*</span>
+      </label>
+      <div class="folder-input-group">
+        <select id="folderSelect" class="form-select" required>
+          <option value="">Select a folder</option>
+          ${folderOptions}
+          <option value="__new__">+ Create New Folder</option>
+        </select>
+        <input 
+          type="text" 
+          id="newFolderInput" 
+          class="form-input" 
+          placeholder="Enter new folder name"
+          style="display: none;"
+          maxlength="50"
+        >
+      </div>
+      <div class="form-help">Choose an existing folder or create a new one</div>
+    `
+
+    // Handle folder selection
+    const folderSelect = document.getElementById("folderSelect")
+    const newFolderInput = document.getElementById("newFolderInput")
+
+    folderSelect?.addEventListener("change", (e) => {
+      if (e.target.value === "__new__") {
+        newFolderInput.style.display = "block"
+        newFolderInput.focus()
+        newFolderInput.required = true
+      } else {
+        newFolderInput.style.display = "none"
+        newFolderInput.required = false
+        newFolderInput.value = ""
+      }
+    })
   }
 
   setupEventListeners() {
@@ -44,7 +111,7 @@ class VideoUploader {
   }
 
   setupFormValidation() {
-    const inputs = document.querySelectorAll(".form-input, .form-textarea")
+    const inputs = document.querySelectorAll(".form-input, .form-textarea, .form-select")
     inputs.forEach((input) => {
       input.addEventListener("blur", () => {
         this.validateField(input)
@@ -64,7 +131,7 @@ class VideoUploader {
     this.loadDraft()
 
     // Save draft on input
-    const inputs = form.querySelectorAll("input, textarea")
+    const inputs = form.querySelectorAll("input, textarea, select")
     inputs.forEach((input) => {
       input.addEventListener("input", () => {
         this.saveDraft()
@@ -77,7 +144,11 @@ class VideoUploader {
     const helpText = driveUrlInput?.parentNode.querySelector(".form-help")
 
     if (!url) {
-      this.updateHelpText(helpText, "Paste the shareable link from Google Drive", "neutral")
+      this.updateHelpText(
+        helpText,
+        "Paste the shareable link from Google Drive, YouTube, or direct video URL",
+        "neutral",
+      )
       return false
     }
 
@@ -111,8 +182,6 @@ class VideoUploader {
       const fileId = this.extractGoogleDriveFileId(url)
       if (!fileId) return
 
-      // Try to get file metadata (this would require Google Drive API in a real implementation)
-      // For now, we'll just extract what we can from the URL
       this.showProcessingIndicator(true)
 
       // Simulate API call delay
@@ -155,29 +224,76 @@ class VideoUploader {
     this.updateSubmitButton(true)
 
     try {
-      await this.saveVideo(formData)
-      this.showNotification("Video added successfully!", "success")
+      await this.showUploadInstructions(formData)
       this.clearDraft()
-
-      // Redirect to catalog after short delay
-      setTimeout(() => {
-        window.location.href = "index.html"
-      }, 1500)
     } catch (error) {
-      console.error("Error saving video:", error)
-      this.showNotification("Failed to save video. Please try again.", "error")
+      console.error("Error processing upload:", error)
+      this.showNotification("Failed to process upload. Please try again.", "error")
     } finally {
       this.isSubmitting = false
       this.updateSubmitButton(false)
     }
   }
 
+  async showUploadInstructions(data) {
+    const video = {
+      id: this.generateVideoId(),
+      title: data.title,
+      description: data.description || "",
+      thumbnail: data.thumbnailUrl || this.getDefaultThumbnail(),
+      videoUrl: this.convertToEmbedUrl(data.driveUrl),
+      driveUrl: data.driveUrl,
+      dateAdded: new Date().toISOString(),
+      folder: data.folder,
+    }
+
+    // Create modal with instructions
+    const modal = document.createElement("div")
+    modal.className = "upload-modal"
+    modal.innerHTML = `
+      <div class="modal-content">
+        <h3>Video Ready to Add!</h3>
+        <p>Since this is a static site, please copy the following JSON and add it to your <code>data/videos.json</code> file:</p>
+        <div class="json-code">
+          <pre><code>${JSON.stringify(video, null, 2)}</code></pre>
+        </div>
+        <div class="modal-actions">
+          <button class="copy-btn" onclick="navigator.clipboard.writeText('${JSON.stringify(video, null, 2).replace(/'/g, "\\'")}')">
+            Copy JSON
+          </button>
+          <button class="close-btn" onclick="this.parentElement.parentElement.parentElement.remove()">
+            Close
+          </button>
+        </div>
+        <p class="modal-note">Add this object to the "videos" array in your JSON file, then refresh the page to see your video.</p>
+      </div>
+    `
+
+    document.body.appendChild(modal)
+
+    // Add click to close
+    modal.addEventListener("click", (e) => {
+      if (e.target === modal) {
+        modal.remove()
+      }
+    })
+  }
+
   getFormData() {
+    const folderSelect = document.getElementById("folderSelect")
+    const newFolderInput = document.getElementById("newFolderInput")
+
+    let folder = folderSelect?.value || ""
+    if (folder === "__new__") {
+      folder = newFolderInput?.value.trim() || ""
+    }
+
     return {
       driveUrl: document.getElementById("driveUrl")?.value.trim() || "",
       title: document.getElementById("videoTitle")?.value.trim() || "",
       description: document.getElementById("videoDescription")?.value.trim() || "",
       thumbnailUrl: document.getElementById("thumbnailUrl")?.value.trim() || "",
+      folder: folder,
     }
   }
 
@@ -211,6 +327,12 @@ class VideoUploader {
       isValid = false
     }
 
+    if (!data.folder) {
+      this.showFieldError("folderSelect", "Please select or create a folder")
+      errors.push("Folder is required")
+      isValid = false
+    }
+
     // Validate description (optional but with limits)
     if (data.description && data.description.length > 500) {
       this.showFieldError("videoDescription", "Description must be less than 500 characters")
@@ -232,34 +354,6 @@ class VideoUploader {
     return isValid
   }
 
-  async saveVideo(data) {
-    // Generate unique ID
-    const videoId = this.generateVideoId()
-
-    // Create video object
-    const video = {
-      id: videoId,
-      title: data.title,
-      description: data.description || "",
-      thumbnail: data.thumbnailUrl || this.getDefaultThumbnail(),
-      videoUrl: this.convertToEmbedUrl(data.driveUrl),
-      driveUrl: data.driveUrl,
-      dateAdded: new Date().toISOString(),
-      addedBy: "user",
-    }
-
-    // Save to localStorage
-    const existingVideos = JSON.parse(localStorage.getItem("userVideos") || "[]")
-    existingVideos.push(video)
-    localStorage.setItem("userVideos", JSON.stringify(existingVideos))
-
-    // Update video count in localStorage for stats
-    const videoCount = existingVideos.length
-    localStorage.setItem("userVideoCount", videoCount.toString())
-
-    return video
-  }
-
   convertToEmbedUrl(url) {
     if (this.isValidGoogleDriveUrl(url)) {
       const fileId = this.extractGoogleDriveFileId(url)
@@ -276,7 +370,7 @@ class VideoUploader {
   }
 
   generateVideoId() {
-    return `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+    return `video_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
   }
 
   getDefaultThumbnail() {
@@ -374,6 +468,12 @@ class VideoUploader {
           return false
         }
         break
+      case "folderSelect":
+        if (!value || value === "") {
+          this.showFieldError(fieldId, "Please select a folder")
+          return false
+        }
+        break
     }
 
     this.clearFieldError(field)
@@ -388,7 +488,7 @@ class VideoUploader {
       button.disabled = true
       button.innerHTML = `
         <div class="loading-spinner-small"></div>
-        Adding Video...
+        Processing...
       `
     } else {
       button.disabled = false
@@ -457,6 +557,12 @@ class VideoUploader {
       if (data.title) document.getElementById("videoTitle").value = data.title
       if (data.description) document.getElementById("videoDescription").value = data.description
       if (data.thumbnailUrl) document.getElementById("thumbnailUrl").value = data.thumbnailUrl
+      if (data.folder) {
+        const folderSelect = document.getElementById("folderSelect")
+        if (folderSelect) {
+          folderSelect.value = data.folder
+        }
+      }
 
       // Show draft indicator
       this.showNotification("Draft restored", "info")
