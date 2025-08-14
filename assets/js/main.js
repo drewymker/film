@@ -270,8 +270,22 @@ class VideoCatalog {
   }
 
   applySortAndFilter() {
-    let videos = [...this.filteredVideos]
+    let videos = [...this.videos]
 
+    // Apply search filter first if there's a search term
+    const searchInput = document.getElementById("searchInput")
+    const searchTerm = searchInput ? searchInput.value.toLowerCase().trim() : ""
+
+    if (searchTerm) {
+      videos = videos.filter((video) => {
+        const titleMatch = video.title.toLowerCase().includes(searchTerm)
+        const descriptionMatch = video.description.toLowerCase().includes(searchTerm)
+        const folderMatch = video.folder && video.folder.toLowerCase().includes(searchTerm)
+        return titleMatch || descriptionMatch || folderMatch
+      })
+    }
+
+    // Apply folder filter
     if (this.currentFolder !== "all") {
       videos = videos.filter((video) => video.folder === this.currentFolder)
     }

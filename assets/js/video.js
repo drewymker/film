@@ -51,6 +51,8 @@ class VideoPlayer {
     // Render video info
     const titleElement = document.getElementById("videoTitle")
     const descriptionElement = document.getElementById("videoDescription")
+    const dateElement = document.getElementById("videoDate")
+    const sourceElement = document.getElementById("videoSource")
 
     if (titleElement) {
       titleElement.textContent = this.currentVideo.title
@@ -58,6 +60,14 @@ class VideoPlayer {
 
     if (descriptionElement) {
       descriptionElement.textContent = this.currentVideo.description
+    }
+
+    if (dateElement && this.currentVideo.dateAdded) {
+      dateElement.textContent = this.formatDate(this.currentVideo.dateAdded)
+    }
+
+    if (sourceElement) {
+      sourceElement.textContent = this.getVideoSource(this.currentVideo)
     }
 
     const folderElement = document.getElementById("videoFolder")
@@ -208,6 +218,26 @@ class VideoPlayer {
         </div>
       `
     }
+  }
+
+  formatDate(dateString) {
+    const date = new Date(dateString)
+    const now = new Date()
+    const diffTime = Math.abs(now - date)
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+
+    if (diffDays === 1) return "Yesterday"
+    if (diffDays < 7) return `${diffDays} days ago`
+    if (diffDays < 30) return `${Math.ceil(diffDays / 7)} weeks ago`
+    if (diffDays < 365) return `${Math.ceil(diffDays / 30)} months ago`
+    return date.toLocaleDateString()
+  }
+
+  getVideoSource(video) {
+    const videoUrl = video.videoUrl || video.driveUrl
+    if (videoUrl?.includes("drive.google.com")) return "Google Drive"
+    if (videoUrl?.includes("youtube.com") || videoUrl?.includes("youtu.be")) return "YouTube"
+    return "Direct Video"
   }
 }
 
