@@ -91,6 +91,7 @@ class VideoUploader {
     if (driveUrlInput) {
       driveUrlInput.addEventListener("input", (e) => {
         this.validateDriveUrl(e.target.value)
+        this.autoGenerateYouTubeThumbnail(e.target.value)
       })
 
       driveUrlInput.addEventListener("blur", (e) => {
@@ -103,6 +104,7 @@ class VideoUploader {
     if (thumbnailInput && driveUrlInput) {
       driveUrlInput.addEventListener("change", () => {
         this.autoGenerateThumbnail(driveUrlInput.value, thumbnailInput)
+        this.autoGenerateYouTubeThumbnail(driveUrlInput.value)
       })
     }
 
@@ -209,6 +211,23 @@ class VideoUploader {
     const fileId = this.extractGoogleDriveFileId(driveUrl)
     if (fileId) {
       thumbnailInput.value = `https://drive.google.com/thumbnail?id=${fileId}&sz=w400-h300`
+    }
+  }
+
+  autoGenerateYouTubeThumbnail(url) {
+    const thumbnailInput = document.getElementById("thumbnailUrl")
+    if (!thumbnailInput || thumbnailInput.value) return // Don't override existing thumbnail
+
+    if (this.isValidYouTubeUrl(url)) {
+      const videoId = this.extractYouTubeVideoId(url)
+      if (videoId) {
+        thumbnailInput.value = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`
+        // Show success feedback
+        const helpText = thumbnailInput.parentNode.querySelector(".form-help")
+        if (helpText) {
+          this.updateHelpText(helpText, "✓ YouTube thumbnail automatically set", "success")
+        }
+      }
     }
   }
 
@@ -445,8 +464,16 @@ class VideoUploader {
   }
 
   extractYouTubeVideoId(url) {
-    const match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]+)/)
-    return match ? match[1] : null
+    const patterns = [
+      /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]+)/,
+      /youtube\.com\/watch\?.*v=([a-zA-Z0-9_-]+)/,
+    ]
+
+    for (const pattern of patterns) {
+      const match = url.match(pattern)
+      if (match) return match[1]
+    }
+    return null
   }
 
   // UI Helper methods
