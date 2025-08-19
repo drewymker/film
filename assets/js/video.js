@@ -59,7 +59,8 @@ class VideoPlayer {
     }
 
     if (descriptionElement) {
-      descriptionElement.textContent = this.currentVideo.description
+      const description = this.currentVideo.description || ""
+      descriptionElement.innerHTML = description.replace(/\n/g, "<br>")
     }
 
     if (dateElement && this.currentVideo.dateAdded) {
@@ -206,7 +207,7 @@ class VideoPlayer {
     if (playerContainer) {
       playerContainer.innerHTML = `
         <div class="video-error">
-          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="12" cy="12" r="10"></circle>
             <line x1="15" y1="9" x2="9" y2="15"></line>
             <line x1="9" y1="9" x2="15" y2="15"></line>
