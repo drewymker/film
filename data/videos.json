@@ -1,36 +1,6 @@
 {
   "videos": [
     {
-      "id": "sample-1",
-      "title": "Sample Video 1",
-      "description": "This is a sample video to demonstrate the catalog functionality. Replace with your own videos.",
-      "thumbnail": "/placeholder.svg?height=200&width=300",
-      "videoUrl": "https://www.youtube.com/embed/dQw4w9WgXcQ",
-      "driveUrl": "https://drive.google.com/file/d/sample/view",
-      "dateAdded": "2024-01-15T10:30:00Z",
-      "folder": "General"
-    },
-    {
-      "id": "sample-2",
-      "title": "Sample Video 2",
-      "description": "Another sample video with a longer description to show how the card layout handles different content lengths. This demonstrates the text truncation feature.",
-      "thumbnail": "/placeholder.svg?height=200&width=300",
-      "videoUrl": "https://www.youtube.com/embed/dQw4w9WgXcQ",
-      "driveUrl": "https://drive.google.com/file/d/sample2/view",
-      "dateAdded": "2024-01-14T15:45:00Z",
-      "folder": "Tutorials"
-    },
-    {
-      "id": "sample-3",
-      "title": "Sample Video 3",
-      "description": "A third sample video to populate the grid and show the responsive layout in action.",
-      "thumbnail": "/placeholder.svg?height=200&width=300",
-      "videoUrl": "https://www.youtube.com/embed/dQw4w9WgXcQ",
-      "driveUrl": "https://drive.google.com/file/d/sample3/view",
-      "dateAdded": "2024-01-13T09:20:00Z",
-      "folder": "General"
-    },
-    {
       "id": "video_1755133777776_f3mog30ad",
       "title": "Descore",
       "description": "Good way to descore blocks from goal. One team shoves opposing team out of the way while another team shoves the blocks out.",
@@ -59,6 +29,66 @@
       "driveUrl": "https://www.youtube.com/watch?v=KlvABFneVfI",
       "dateAdded": "2025-08-19T00:56:27.238Z",
       "folder": "Full Matches"
+    },
+    {
+      "id": "video_1755565556008_hs5syl1qv",
+      "title": "Mall Of America Finals Match 1",
+      "description": "",
+      "thumbnail": "https://img.youtube.com/vi/KdQ3SzIR4xE/maxresdefault.jpg",
+      "videoUrl": "https://www.youtube.com/embed/KdQ3SzIR4xE",
+      "driveUrl": "https://www.youtube.com/embed/KdQ3SzIR4xE",
+      "dateAdded": "2025-08-19T01:05:56.008Z",
+      "folder": "Full Matches"
+    },
+    {
+      "id": "video_1755566292470_immhgj1iw",
+      "title": "Good Robot Movement",
+      "description": "Good movement from red robot on close long goal\nYou can score 1 more block, then push blocks out further",
+      "thumbnail": "https://drive.google.com/thumbnail?id=1zQ6K5CJSCA99eQ3BuCV5jiaG4d14BYe_&sz=w400-h300",
+      "videoUrl": "https://drive.google.com/file/d/1zQ6K5CJSCA99eQ3BuCV5jiaG4d14BYe_/preview",
+      "driveUrl": "https://drive.google.com/file/d/1zQ6K5CJSCA99eQ3BuCV5jiaG4d14BYe_/preview",
+      "dateAdded": "2025-08-19T01:18:12.470Z",
+      "folder": "Clips"
+    },
+    {
+      "id": "video_1755566717535_sfczhmz3x",
+      "title": "Mall Of America Semifinal 2",
+      "description": "",
+      "thumbnail": "https://img.youtube.com/vi/AKvJm4BlhSM/maxresdefault.jpg",
+      "videoUrl": "https://www.youtube.com/embed/AKvJm4BlhSM",
+      "driveUrl": "https://www.youtube.com/embed/AKvJm4BlhSM",
+      "dateAdded": "2025-08-19T01:25:17.535Z",
+      "folder": "Full Matches"
+    },
+    {
+    "id": "video_1755566760857_cjc9psiuz",
+    "title": "Mall Of America Semifinal 1",
+    "description": "",
+    "thumbnail": "https://img.youtube.com/vi/qjfKcxsCmUo/maxresdefault.jpg",
+    "videoUrl": "https://www.youtube.com/embed/qjfKcxsCmUo",
+    "driveUrl": "https://www.youtube.com/embed/qjfKcxsCmUo",
+    "dateAdded": "2025-08-19T01:26:00.857Z",
+    "folder": "Full Matches"
+    },
+    {
+      "id": "video_1755567673073_8uct25rsq",
+      "title": "Blue Loses Control Zone",
+      "description": "Be careful not to leave goal at wrong time\nPounce on these mistakes like red did",
+      "thumbnail": "https://drive.google.com/thumbnail?id=1ZUHPyiGRtRPie2YRpdgyB1blFJiW0_xb&sz=w400-h300",
+      "videoUrl": "https://drive.google.com/file/d/1ZUHPyiGRtRPie2YRpdgyB1blFJiW0_xb/preview",
+      "driveUrl": "https://drive.google.com/file/d/1ZUHPyiGRtRPie2YRpdgyB1blFJiW0_xb/preview",
+      "dateAdded": "2025-08-19T01:41:13.073Z",
+      "folder": "Clips"
+    },
+    {
+      "id": "video_1755568130596_w1yhkk6hl",
+      "title": "Fast Descore",
+      "description": "Place a few blocks in the goal then push all the rest out",
+      "thumbnail": "https://drive.google.com/thumbnail?id=1cpkjhbL-JL7mgidxwRIA3P3u5boDo2A-&sz=w400-h300",
+      "videoUrl": "https://drive.google.com/file/d/1cpkjhbL-JL7mgidxwRIA3P3u5boDo2A-/preview",
+      "driveUrl": "https://drive.google.com/file/d/1cpkjhbL-JL7mgidxwRIA3P3u5boDo2A-/preview",
+      "dateAdded": "2025-08-19T01:48:50.596Z",
+      "folder": "Clips"
     }
     
   ]
