@@ -255,13 +255,15 @@ class VideoUploader {
   }
 
   async showUploadInstructions(data) {
+    const convertedUrl = this.convertToEmbedUrl(data.driveUrl)
+
     const video = {
       id: this.generateVideoId(),
       title: data.title,
       description: data.description || "",
       thumbnail: data.thumbnailUrl || this.getDefaultThumbnail(),
-      videoUrl: this.convertToEmbedUrl(data.driveUrl),
-      driveUrl: data.driveUrl,
+      videoUrl: convertedUrl,
+      driveUrl: convertedUrl, // Use converted URL here too
       dateAdded: new Date().toISOString(),
       folder: data.folder,
     }
